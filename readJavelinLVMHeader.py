@@ -68,9 +68,17 @@ javHeaderVariables = {
     50: "unknown",      # Float
 }
 
-fileName = '\\\\prod.lan\\active\\proj\\futurex\\StuartCorridor\\Working\\Matti\\Javelin\\KR48_38p5-8m_freq1_Tr1000_1.lvm'
-file = open(fileName, 'rb')
+def read_javelin_header(fileNames):
+    # fileName = '\\\\prod.lan\\active\\proj\\futurex\\StuartCorridor\\Working\\Matti\\Javelin\\KR48_38p5-8m_freq1_Tr1000_1.lvm'
+    for file in fileNames:
+        print(file)
+        f = open(file, 'rb')
+        for i in range(len(javHeaderVariables)):
+            headerValue = struct.unpack('>d', f.read(8))
+            print ("{0:38} {1}".format(javHeaderVariables[i+1], headerValue[0]))
 
-for i in range(len(javHeaderVariables)):
-    headerValue = struct.unpack('>d', file.read(8))
-    print ("{0:38} {1}".format(javHeaderVariables[i+1], headerValue[0]))
+if __name__ == "__main__":
+    if sys.argv[1:]:
+        read_javelin_header(sys.argv[1:])
+    else:
+        print("Usage: %s <path\\file.lvm> [<path\\file.lvm>...]" % sys.argv[0])
