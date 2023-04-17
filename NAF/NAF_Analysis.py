@@ -36,19 +36,43 @@ def get_named_asud(strat):
     result = cur.fetchall()
     return result
 
-def get_asud_details(token):
-    # This approach might be good to try to get working...
-    if type(token) is int:
-        clause = 'stratno = \{\}'
-    else:
-        clause = 'stratname like \'%\{\} %\''
+def get_strat_provs_from_stratno(stratno):
+    # Search on stratno column
     query = """
-            SELECT  stratno, stratname, parent, topminage, basemaxage, description, comments
-            FROM    geodx.stratnames
-            WHERE   {}""".format(clause, token)
+        SELECT DISTINCT s.stratno, s.stratname, stat.statusname, p.provname, s.parent, s.topminagename, s.basemaxagename, s.description, s.comments
+        FROM        geodx.stratnames s
+        LEFT JOIN   geodx.stratstatus stat on s.status = stat.status
+        LEFT JOIN   provs.prov_strats ps on ps.stratno = s.stratno
+        LEFT JOIN   provs.provinces p on p.eno = ps.eno and p.pref = 'Y' and p.provtype <> 'georegion'
+        WHERE       s.stratno = {}""".format(stratno)
     cur.execute(query)
     result = cur.fetchall()
     return result
+
+def get_strat_provs_from_stratword(stratword):
+    # Search on stratname column
+    query = """
+        SELECT DISTINCT s.stratno, s.stratname, stat.statusname, p.provname, s.parent, s.topminagename, s.basemaxagename, s.description, s.comments
+        FROM        geodx.stratnames s
+        LEFT JOIN   geodx.stratstatus stat on s.status = stat.status
+        LEFT JOIN   provs.prov_strats ps on ps.stratno = s.stratno
+        LEFT JOIN   provs.provinces p on p.eno = ps.eno and p.pref = 'Y' and p.provtype <> 'georegion'
+        WHERE       s.stratname like '%{} %'""".format(stratword)
+    cur.execute(query)
+    result = cur.fetchall()
+    return result
+
+def get_provs(strat):
+    # Search on stratname column
+    query = """
+            SELECT  p.eno, p.provname
+            FROM    provs.prov_strats ps
+            JOIN    provs.provinces p on (ps.eno = p.eno and p.pref = 'Y' and p.provtype <> 'georegion')
+            WHERE   ps.stratno = {}""".format(strat)
+    cur.execute(query)
+    result = cur.fetchall()
+    return result
+
     
 # Read first few columns of Full_NAF worksheet into Pandas
 naf_path = os.path.join(naf_folder, 'NationalAquiferFramework.xlsx')
@@ -62,7 +86,6 @@ df = df.astype({'NafGAStratNumber': int, 'NafHGUNumber': int, 'NafHGCNumber': in
 print(df.head())
 print(df.dtypes)
 df_headings = list(df.columns.values)
-
 
 workbook = xlsxwriter.Workbook(output_file)
 worksheet = workbook.add_worksheet()
@@ -81,6 +104,7 @@ asud_headings = [
     'Stratno',
     'Stratname',
     'Status',
+    'Province',
     'Parent',
     'topMinAgeName',
     'botMaxAgeName',
@@ -115,8 +139,8 @@ ws_row += 1
 for _, row in df.iterrows():
     ws_col = 0
     # Limit rows for testing
-    # if ws_row > 50:
-    #    break
+    if ws_row > 50:
+        break
     naf_gu_name = row['NafGUName']
     asud_details = ''
     if naf_gu_name is not np.nan:
@@ -127,17 +151,37 @@ for _, row in df.iterrows():
         # Check whether the final token is a number, in which case query on stratno
         if last_token.isnumeric():
             stratno = int(last_token)
-            asud_details = get_stratno_asud(stratno)
+            #asud_details = get_stratno_asud(stratno)
+            asud_details = get_strat_provs_from_stratno(stratno)
         # Otherwise query on stratname using the first token
         else:
             # Don't use uninteresting prefixes
             if uninteresting_prefixes.count(tokens[0]) == 0:
-                asud_details = get_named_asud(tokens[0])
+                #asud_details = get_named_asud(tokens[0])
+                asud_details = get_strat_provs_from_stratword(tokens[0])
             else:
-                asud_details = get_named_asud(tokens[1])
+                #asud_details = get_named_asud(tokens[1])
+                asud_details = get_strat_provs_from_stratword(tokens[1])
         # Write the data to the Excel spreadsheet
         # Starting by reproducing the first bit of the BoM's NAF spreadsheet
+        #print(asud_details)
+        print(row)
         for value in row:
+            if type(value) is float:
+                value = ''
+            print(ws_row, ws_col, str(value))
+            ws_col += 1
+        print(ws_row, ws_col, naf_gu_name)
+        ws_col += 1
+        asud_col = ws_col
+        for idx, asud_tuple in enumerate(asud_details):
+            for item in asud_tuple:
+                print(ws_row, asud_col, item)
+                asud_col += 1
+            asud_col = ws_col
+            ws_row += 1
+
+        """for value in row:
             if type(value) is float:
                 value = ''
             worksheet.write(ws_row, ws_col, str(value))
@@ -151,7 +195,7 @@ for _, row in df.iterrows():
                 asud_col += 1
             asud_col = ws_col
             ws_row += 1
-        #worksheet.write(ws_row, ws_col, str(asud_details))
+        #worksheet.write(ws_row, ws_col, str(asud_details))"""
     ws_row += 1
 
 workbook.close()
