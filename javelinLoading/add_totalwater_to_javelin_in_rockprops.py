@@ -1,4 +1,4 @@
-import os, shutil
+"""import os, shutil
 import pandas as pd
 import numpy as np
 from openpyxl import Workbook, load_workbook
@@ -36,7 +36,7 @@ PROCESS_TYPE = ''
 # value is (PROCESS TYPE, PETROPHYSICAL PROPERTY, UOM, RESULT QUALIFIER, UNCERTAINTY TYPE, REMARKS)
 PROCESS_LOOKUP_JP350 = {
     #'depth:
-    'totalf':   (18826055, 'NMR total water content', 'volume fraction', 'weighted mean', 'unknown', '',),
+    #'totalf:   ()
     'clayf':    (4439109, 'clay-bound water content', 'volume fraction', 'weighted mean', 'unknown',
                 '3 ms T2 cutoff',),
     'capf':     (4439113, 'capillary-bound water content', 'volume fraction', 'weighted mean', 'unknown',
@@ -57,7 +57,7 @@ PROCESS_LOOKUP_JP350 = {
 
 PROCESS_LOOKUP_JP238 = {
     #'depth:
-    'totalf':   (18826054, 'NMR total water content', 'volume fraction', 'weighted mean', 'unknown', '',),
+    #'totalf:   ()
     'clayf':    (4439106, 'clay-bound water content', 'volume fraction', 'weighted mean', 'unknown',
                 '3 ms T2 cutoff',),
     'capf':     (4439111, 'capillary-bound water content', 'volume fraction', 'weighted mean', 'unknown',
@@ -82,7 +82,7 @@ template_file = r'.\Templates\ROCKPROPS-jav_cols.XLSX'
 metadata_file = r'.\Config\2023_05_24_Javelin_bores_for_testing.xlsx'
 
 # Output file
-output_file = 'Test_ROCKPROPS_UDF_Javelin_loader_June2023.XLSX'
+output_file = 'ROCKPROPS_UDF_Javelin_loader_March2023.XLSX'
 output_dir = r'.\Outputs\\'
 
 def create_output_loader(outfile, loading_template):
@@ -248,6 +248,8 @@ def main():
         wb = add_downhole_intervals(working_info, collection_name, javelin_data, wb)
 
     wb.save(working_loader)
+
+"""
 
 
 if __name__ == "__main__":

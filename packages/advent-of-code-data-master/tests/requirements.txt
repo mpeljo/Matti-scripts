@@ -1,8 +1,0 @@
---editable .
-pytest
-pytest-cov
-pytest-mock
-pytest-raisin
-pytest-freezegun
-pytest-socket
-requests-mock
